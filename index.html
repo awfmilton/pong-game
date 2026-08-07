@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pong</title>
+  <style>
+    body {
+      background: #0d0f17;
+      color: #e6e6e6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    }
+    canvas#pong {
+      background: #05060b;
+      border: 2px solid #1b2233;
+      border-radius: 6px;
+      image-rendering: pixelated;
+      box-shadow: 0 0 40px rgba(0,243,255,0.12);
+      max-width: 100%;
+    }
+    .hud {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #7a8699;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="pong" width="800" height="500"></canvas>
+  <div class="hud">
+    W / S — LEFT PADDLE, ↑ / ↓ — RIGHT PADDLE, SPACE — PAUSE, ENTER — START / RESTART, FIRST TO 7 WINS
+  </div>
+  <script>
+    // Game States
+    const MENU = 'MENU';
+    const PLAYING = 'PLAYING';
+    const PAUSED = 'PAUSED';
+    const GAME_OVER = 'GAME_OVER';
+
+    let status = MENU;
+
+    // Movement Flags
+    const left = { up: false, down: false };
+    const right = { up: false, down: false };
+
+    // Placeholder resetGame function and call counter
+    let resetCount = 0;
+    function resetGame() {
+      resetCount++;
+      console.log('resetGame called');
+    }
+
+    function initListeners() {
+      window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
+
+        // Prevent default browser scrolling behavior for specific keys
+        if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+        }
+
+        switch (e.key) {
+          case 'w':
+          case 'W':
+            left.up = true;
+            break;
+          case 's':
+          case 'S':
+            left.down = true;
+            break;
+          case 'ArrowUp':
+            right.up = true;
+            break;
+          case 'ArrowDown':
+            right.down = true;
+            break;
+          case ' ':
+            if (status === PLAYING) {
+              status = PAUSED;
+            } else if (status === PAUSED) {
+              status = PLAYING;
+            }
+            break;
+          case 'Enter':
+            if (status === MENU || status === GAME_OVER) {
+              resetGame();
+            }
+            break;
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.repeat) return;
+
+        // Prevent default browser scrolling behavior for specific keys
+        if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+        }
+
+        switch (e.key) {
+          case 'w':
+          case 'W':
+            left.up = false;
+            break;
+          case 's':
+          case 'S':
+            left.down = false;
+            break;
+          case 'ArrowUp':
+            right.up = false;
+            break;
+          case 'ArrowDown':
+            right.down = false;
+            break;
+        }
+      });
+    }
+
+    // Initialize listeners
+    initListeners();
+  </script>
+</body>
+</html>
