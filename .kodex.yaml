@@ -1,0 +1,14 @@
+name: pong-game
+subdomain: pong
+type: static-site
+
+serve:
+  file: index.html
+  port: 8080
+
+build:
+  dockerfile: Dockerfile
+
+health_check:
+  path: /
+  expected_status: 200
