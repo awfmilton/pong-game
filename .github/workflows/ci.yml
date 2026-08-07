@@ -1,0 +1,50 @@
+name: CI Smoke Check
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Integrity Smoke Check
+        run: |
+          if [ ! -f index.html ]; then
+            echo "Warning: index.html is missing (game has not landed yet). Skipping integrity checks."
+            exit 0
+          fi
+
+          if [ ! -f README.md ]; then
+            echo "Error: README.md is missing!"
+            exit 1
+          fi
+
+          markers=(
+            'id="pong"'
+            "getContext('2d')"
+            "WINNING_SCORE"
+            "requestAnimationFrame"
+            "addEventListener('keydown'"
+            "ArrowUp"
+            "resetGame"
+          )
+
+          for marker in "${markers[@]}"; do
+            if ! grep -q -F "$marker" index.html; then
+              echo "Error: Missing required marker '$marker' in index.html"
+              exit 1
+            fi
+          done
+
+          echo "Success: All integrity checks passed!"
