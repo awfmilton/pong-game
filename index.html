@@ -108,6 +108,35 @@
 
     // Call once on load
     resetBall(1);
+
+    // Keyboard input layer (issue #3)
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
+      switch (e.key) {
+        case 'w': case 'W': left.up = true; break;
+        case 's': case 'S': left.down = true; break;
+        case 'ArrowUp': right.up = true; break;
+        case 'ArrowDown': right.down = true; break;
+        case ' ':
+          if (gameState.status === 'PLAYING') gameState.status = 'PAUSED';
+          else if (gameState.status === 'PAUSED') gameState.status = 'PLAYING';
+          break;
+        case 'Enter':
+          if (gameState.status === 'MENU' || gameState.status === 'GAME_OVER') resetGame();
+          break;
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.repeat) return;
+      switch (e.key) {
+        case 'w': case 'W': left.up = false; break;
+        case 's': case 'S': left.down = false; break;
+        case 'ArrowUp': right.up = false; break;
+        case 'ArrowDown': right.down = false; break;
+      }
+    });
   </script>
 </body>
 </html>
