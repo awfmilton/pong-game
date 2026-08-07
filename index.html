@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pong</title>
+  <style>
+    body {
+      background: #0d0f17;
+      color: #e6e6e6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    }
+    canvas#pong {
+      background: #05060b;
+      border: 2px solid #1b2233;
+      border-radius: 6px;
+      image-rendering: pixelated;
+      box-shadow: 0 0 40px rgba(0,243,255,0.12);
+      max-width: 100%;
+    }
+    .hud {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #7a8699;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="pong" width="800" height="500"></canvas>
+  <div class="hud">
+    W / S — LEFT PADDLE, ↑ / ↓ — RIGHT PADDLE, SPACE — PAUSE, ENTER — START / RESTART, FIRST TO 7 WINS
+  </div>
+  <script>
+    const canvas = document.getElementById('pong');
+    const ctx = canvas.getContext('2d');
+
+    // Constants
+    const WIDTH = 800;
+    const HEIGHT = 500;
+    const WINNING_SCORE = 7;
+    const PADDLE_W = 12;
+    const PADDLE_H = 90;
+    const PADDLE_SPEED = 7;
+    const PADDLE_MARGIN = 20;
+    const BALL_R = 7;
+    const BALL_SPEED = 6;
+    const MAX_BOUNCE_ANGLE = Math.PI / 4;
+    const SPEED_STEP = 0.35;
+    const MAX_BALL_SPEED = 14;
+
+    // Game state objects
+    const gameState = {
+      status: 'MENU',
+      winner: null
+    };
+
+    const left = {
+      x: PADDLE_MARGIN,
+      y: (HEIGHT - PADDLE_H) / 2,
+      score: 0,
+      up: false,
+      down: false
+    };
+
+    const right = {
+      x: WIDTH - PADDLE_MARGIN - PADDLE_W,
+      y: (HEIGHT - PADDLE_H) / 2,
+      score: 0,
+      up: false,
+      down: false
+    };
+
+    const ball = {
+      x: WIDTH / 2,
+      y: HEIGHT / 2,
+      dx: 0,
+      dy: 0,
+      speed: BALL_SPEED
+    };
+
+    // Helper functions
+    function resetBall(dir) {
+      ball.x = WIDTH / 2;
+      ball.y = HEIGHT / 2;
+      ball.speed = BALL_SPEED;
+      const angle = (Math.random() * 2 - 1) * MAX_BOUNCE_ANGLE;
+      ball.dx = dir * ball.speed * Math.cos(angle);
+      ball.dy = ball.speed * Math.sin(angle);
+    }
+
+    function resetGame() {
+      left.score = 0;
+      right.score = 0;
+      left.y = (HEIGHT - PADDLE_H) / 2;
+      right.y = (HEIGHT - PADDLE_H) / 2;
+      resetBall(Math.random() < 0.5 ? 1 : -1);
+      gameState.status = 'PLAYING';
+      gameState.winner = null;
+    }
+
+    // Call once on load
+    resetBall(1);
+  </script>
+</body>
+</html>
