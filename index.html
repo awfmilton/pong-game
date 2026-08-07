@@ -137,6 +137,121 @@
         case 'ArrowDown': right.down = false; break;
       }
     });
+
+    // update() — physics simulation step (issue #5)
+    function update() {
+      if (gameState.status !== 'PLAYING') return;
+
+      if (left.up && left.y > 0) left.y -= PADDLE_SPEED;
+      if (left.down && left.y + PADDLE_H < HEIGHT) left.y += PADDLE_SPEED;
+      if (right.up && right.y > 0) right.y -= PADDLE_SPEED;
+      if (right.down && right.y + PADDLE_H < HEIGHT) right.y += PADDLE_SPEED;
+
+      ball.x += ball.dx;
+      ball.y += ball.dy;
+
+      if (ball.y - BALL_R <= 0) { ball.y = BALL_R; ball.dy = Math.abs(ball.dy); }
+      if (ball.y + BALL_R >= HEIGHT) { ball.y = HEIGHT - BALL_R; ball.dy = -Math.abs(ball.dy); }
+
+      if (ball.dx < 0 && ball.x - BALL_R <= left.x + PADDLE_W && ball.x - BALL_R > left.x &&
+          ball.y + BALL_R >= left.y && ball.y - BALL_R <= left.y + PADDLE_H) {
+        const rel = (ball.y - (left.y + PADDLE_H / 2)) / (PADDLE_H / 2);
+        const angle = rel * MAX_BOUNCE_ANGLE;
+        ball.speed = Math.min(ball.speed + SPEED_STEP, MAX_BALL_SPEED);
+        ball.dx = ball.speed * Math.cos(angle);
+        ball.dy = ball.speed * Math.sin(angle);
+        ball.x = left.x + PADDLE_W + BALL_R;
+      }
+
+      if (ball.dx > 0 && ball.x + BALL_R >= right.x && ball.x + BALL_R < right.x + PADDLE_W &&
+          ball.y + BALL_R >= right.y && ball.y - BALL_R <= right.y + PADDLE_H) {
+        const rel = (ball.y - (right.y + PADDLE_H / 2)) / (PADDLE_H / 2);
+        const angle = rel * MAX_BOUNCE_ANGLE;
+        ball.speed = Math.min(ball.speed + SPEED_STEP, MAX_BALL_SPEED);
+        ball.dx = -ball.speed * Math.cos(angle);
+        ball.dy = ball.speed * Math.sin(angle);
+        ball.x = right.x - BALL_R;
+      }
+
+      if (ball.x - BALL_R < 0) {
+        right.score++;
+        if (right.score >= WINNING_SCORE) { gameState.status = 'GAME_OVER'; gameState.winner = 'RIGHT'; }
+        else resetBall(1);
+      }
+      if (ball.x + BALL_R > WIDTH) {
+        left.score++;
+        if (left.score >= WINNING_SCORE) { gameState.status = 'GAME_OVER'; gameState.winner = 'LEFT'; }
+        else resetBall(-1);
+      }
+    }
+
+    // render() — canvas draw pass (issue #6)
+    function render() {
+      ctx.fillStyle = '#05060b';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      ctx.setLineDash([10, 15]);
+      ctx.strokeStyle = '#1b2233';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(WIDTH / 2, 0);
+      ctx.lineTo(WIDTH / 2, HEIGHT);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#e6e6e6';
+      ctx.fillRect(left.x, left.y, PADDLE_W, PADDLE_H);
+      ctx.fillRect(right.x, right.y, PADDLE_W, PADDLE_H);
+
+      ctx.fillStyle = '#00f3ff';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#e6e6e6';
+      ctx.font = '900 48px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(left.score, WIDTH / 4, 60);
+      ctx.fillText(right.score, (3 * WIDTH) / 4, 60);
+
+      if (gameState.status === 'MENU') {
+        ctx.fillStyle = 'rgba(13,15,23,0.75)';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = '#e6e6e6';
+        ctx.font = '700 32px ui-monospace, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('PONG', WIDTH / 2, HEIGHT / 2 - 20);
+        ctx.font = '400 16px ui-monospace, monospace';
+        ctx.fillStyle = '#7a8699';
+        ctx.fillText('Press ENTER to start', WIDTH / 2, HEIGHT / 2 + 20);
+      } else if (gameState.status === 'PAUSED') {
+        ctx.fillStyle = 'rgba(13,15,23,0.6)';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = '#e6e6e6';
+        ctx.font = '700 28px ui-monospace, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSED', WIDTH / 2, HEIGHT / 2);
+      } else if (gameState.status === 'GAME_OVER') {
+        ctx.fillStyle = 'rgba(13,15,23,0.75)';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = '#e6e6e6';
+        ctx.font = '700 32px ui-monospace, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gameState.winner === 'LEFT' ? 'LEFT WINS!' : 'RIGHT WINS!', WIDTH / 2, HEIGHT / 2 - 20);
+        ctx.font = '400 16px ui-monospace, monospace';
+        ctx.fillStyle = '#7a8699';
+        ctx.fillText('Press ENTER to restart', WIDTH / 2, HEIGHT / 2 + 20);
+      }
+    }
+
+    // requestAnimationFrame game loop (issue #4)
+    function loop() {
+      update();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
